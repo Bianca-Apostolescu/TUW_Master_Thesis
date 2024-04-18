@@ -84,13 +84,13 @@ def plot_results(lent, orig_images, altered_images, masks, pred_masks):
           plt.title('Original Image')
           plt.axis('off')
 
-          # plot ground truth mask
+          # plot altered image
           plt.subplot(142)
-          plt.imshow(altered_images.cpu().numpy()[i][0])
+          plt.imshow(altered_images.cpu().numpy()[i].transpose(1, 2, 0))
           plt.title('Altered Image')
           plt.axis('off')
 
-          # plot predicted mask
+          # plot ground truth mask
           plt.subplot(143)
           plt.imshow(masks.cpu().numpy()[i][0], cmap='gray')
           plt.title('Ground Truth Mask')
