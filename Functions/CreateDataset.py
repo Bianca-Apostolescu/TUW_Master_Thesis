@@ -118,7 +118,7 @@ def load_dataset(dataset_path, num_folders):
                 continue
 
             # Construct file paths for original image, altered image, and mask
-            orig_path = os.path.join(folder_path, folder+'_orig.jpg')
+            orig_path = os.path.join(folder_path, folder+'_orig.jpg') # orig_path = os.path.join(folder_path, folder+'_orig.jpg')
             altered_ext = 'jpg' if os.path.exists(os.path.join(folder_path, common_id+'_0.jpg')) else 'png'
             altered_path = os.path.join(folder_path, common_id+'_0.'+altered_ext)
             mask_path = os.path.join(folder_path, common_id+'_0_mask.png')
