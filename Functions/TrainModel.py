@@ -64,49 +64,31 @@ print(device)
 
 
 
-# In[ ]:
-
-
-
-
-
-# In[4]:
-
-
-def train_model(model, dataloader, steps, loss_function, optim, device):
+def train_model(model, dataloader, loss_function, optim, device):
   print("Training...")
-
-  model.train()
 
   totalTrainLoss = 0
 
-  # loop over the training set
-  for i, (x, y) in enumerate(dataloader):
+  model.train() # unet.train.train() 
 
-      # send the input to the device
-      (x, y) = (x.to(device), y.to(device))
+  for orig_images, altered_images, masks in dataloader:
+      images, altered_images, masks = orig_images.to(device), altered_images.to(device), masks.to(device)
 
-      # perform a forward pass and calculate the training loss
-      pred = model(x)
-      loss = loss_function(pred, y)
-
-      # first, zero out any previously accumulated gradients, then
-      # perform backpropagation, and then update model parameters
       optim.zero_grad()
+      pred_masks = model(altered_images) # they are not binary => the binary masks are displayed using the vizualize function with a threshold
+      # pred_masks = torch.sigmoid(pred_masks)
+
+      loss = loss_function(pred_masks, masks)
       loss.backward()
       optim.step()
 
-      # add the loss to the total training loss so far
-      totalTrainLoss += loss
+      pred_masks = (pred_masks > 0.5).float()
 
+      totalTrainLoss += loss.item()
 
-  avgTrainLoss = totalTrainLoss / steps
+  avg_train_loss = totalTrainLoss / len(dataloader)
 
-  return avgTrainLoss
-
-
-# In[5]:
-
+  return avg_train_loss
 
 
 

@@ -64,43 +64,29 @@ print(device)
 
 
 
-# In[ ]:
 
-
-
-
-
-# In[4]:
-
-
-def validate_model(model, dataloader, steps, loss_function, optim, device):
+def validate_model(model, dataloader, loss_function, device):
   print("Validating...")
+
+  totalValLoss = 0
 
   model.eval()
 
-  totalTrainLoss = 0
-
-  # loop over the training set
   with torch.no_grad():
-    for i, (x, y) in enumerate(dataloader):
+      # total_val_loss = 0
 
-        # send the input to the device
-        (x, y) = (x.to(device), y.to(device))
+      for orig_images, altered_images, masks in dataloader:
+          
+          orig_images, altered_images, masks = orig_images.to(device), altered_images.to(device), masks.to(device)
+          pred_masks = model(altered_images) # validate on altered_images
+          val_loss = loss_function(pred_masks, masks)
 
-        # perform a forward pass and calculate the training loss
-        pred = model(x)
-        loss = loss_function(pred, y)
+          totalValLoss += val_loss.item()
 
-        # add the loss to the total training loss so far
-        totalTrainLoss += loss
+  avg_val_loss = totalValLoss / len(dataloader)
 
+  return avg_val_loss
 
-    avgTrainLoss = totalTrainLoss / steps
-
-    return avgTrainLoss
-
-
-# In[5]:
 
 
 

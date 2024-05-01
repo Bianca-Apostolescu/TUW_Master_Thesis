@@ -64,18 +64,9 @@ print(device)
 
 
 
-# In[ ]:
-
-
-
-
-
-# In[4]:
-
-
 def plot_results(lent, orig_images, altered_images, masks, pred_masks):
     
-    for i in range (0, lent):
+    for i in range (0, lent): # range (0, lent) - for every image combination
           plt.figure(figsize = (12, 12))
 
           # plot original image
