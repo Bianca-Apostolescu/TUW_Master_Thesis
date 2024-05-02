@@ -79,35 +79,9 @@ print(device)
 
 
 
-# In[ ]:
-
-
-
-
-
-# In[4]:
-
-
-def main_loop(model, original_images, altered_images, masks, transforms_train, transforms_test, wb_name, lr, batch_size, epochs, test_split, valid_split):
+def main_loop(original_images, altered_images, masks, transforms_train, transforms_test, wb_name, lr, batch_size, epochs, test_split, valid_split):
     
     wandb.login()
-
-    # wandb.init(
-    #         project = wb_name,
-    #         # name = "init_metrics_run_" + epoch, 
-    #         # Track hyperparameters and run metadata
-    #         config = {
-    #                 "learning_rate": lr,
-    #                 "epochs": epochs,
-    #                 "batch": batch_size
-    #                 },
-    #         )
-
-    # Initialize loss function and optimizer
-    lossFunc = nn.BCEWithLogitsLoss()
-    opt = torch.optim.Adam(model.parameters(), lr = lr)
-
-
 
     for tts in test_split:
         print("[INFO] TEST_SPLIT = {} ...".format(tts))
@@ -140,9 +114,23 @@ def main_loop(model, original_images, altered_images, masks, transforms_train, t
 
         for epoch in epochs:
 
+          unet = smp.Unet(
+                encoder_name = "resnet101",
+                encoder_weights = "imagenet",
+                in_channels = 3,  # 3 channels for the image
+                classes = 1,  # 1 class => binary mask
+                activation = 'sigmoid'
+               ).to(device)
+
+          model = unet
+
+          # Initialize loss function and optimizer
+          lossFunc = nn.BCEWithLogitsLoss()
+          opt = torch.optim.Adam(model.parameters(), lr = lr)
+
           wandb.init(
             project = wb_name,
-            name = "init_metrics_run_epochs_" + str(epoch), 
+            name = "init_metrics_run_" + "tts" + str(tts) + "_ep" + str(epoch), 
             # Track hyperparameters and run metadata
             config = {
                     "learning_rate": lr,
@@ -151,7 +139,6 @@ def main_loop(model, original_images, altered_images, masks, transforms_train, t
                     },
             )
 
-          # wandb.name("init_metrics_run_epochs_" + epoch)
 
           print("[INFO] Training the network for {} epochs...".format(epoch))
 

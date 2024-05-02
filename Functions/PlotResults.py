@@ -26,6 +26,7 @@ import cv2
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import seaborn as sns
+import wandb
 
 # For importing models and working with them
 ## Torch
@@ -67,34 +68,43 @@ print(device)
 def plot_results(lent, orig_images, altered_images, masks, pred_masks):
     
     for i in range (0, lent): # range (0, lent) - for every image combination
-          plt.figure(figsize = (12, 12))
+          
+          # Log image(s)
+          wandb.log(
+                  {"original_images": [wandb.Image(orig_images.cpu().numpy()[i].transpose(1, 2, 0), caption = "Original_Image")],
+                   "altered_images": [wandb.Image(altered_images.cpu().numpy()[i].transpose(1, 2, 0), caption = "Altered_Image")],
+                   "gt_masks": [wandb.Image(masks.cpu().numpy()[i][0], caption = "GT_Mask")],
+                   "pred_masks": [wandb.Image(pred_masks.cpu().numpy()[i][0], caption = "Pred_Mask")]
+                  })
+          
+          # plt.figure(figsize = (12, 12))
 
-          # plot original image
-          plt.subplot(141)
-          plt.imshow(orig_images.cpu().numpy()[i].transpose(1, 2, 0))
-          plt.title('Original Image')
-          plt.axis('off')
+          # # plot original image
+          # plt.subplot(141)
+          # plt.imshow(orig_images.cpu().numpy()[i].transpose(1, 2, 0))
+          # plt.title('Original Image')
+          # plt.axis('off')
 
-          # plot altered image
-          plt.subplot(142)
-          plt.imshow(altered_images.cpu().numpy()[i].transpose(1, 2, 0))
-          plt.title('Altered Image')
-          plt.axis('off')
+          # # plot altered image
+          # plt.subplot(142)
+          # plt.imshow(altered_images.cpu().numpy()[i].transpose(1, 2, 0))
+          # plt.title('Altered Image')
+          # plt.axis('off')
 
-          # plot ground truth mask
-          plt.subplot(143)
-          plt.imshow(masks.cpu().numpy()[i][0], cmap='gray')
-          plt.title('Ground Truth Mask')
-          plt.axis('off')
+          # # plot ground truth mask
+          # plt.subplot(143)
+          # plt.imshow(masks.cpu().numpy()[i][0], cmap='gray')
+          # plt.title('Ground Truth Mask')
+          # plt.axis('off')
 
-          # plot predicted mask
-          plt.subplot(144)
-          plt.imshow(pred_masks.cpu().numpy()[i][0], cmap='gray')
-          plt.title('Predicted Mask')
-          plt.axis('off')
+          # # plot predicted mask
+          # plt.subplot(144)
+          # plt.imshow(pred_masks.cpu().numpy()[i][0], cmap='gray')
+          # plt.title('Predicted Mask')
+          # plt.axis('off')
 
-          # display the plot
-          plt.show()
+          # # display the plot
+          # plt.show()
 
 
 # In[5]:
