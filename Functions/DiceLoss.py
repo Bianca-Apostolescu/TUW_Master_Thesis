@@ -32,6 +32,7 @@ import seaborn as sns
 import torch
 import torch.utils.data # for Dataset
 import torch.nn as nn
+import torch.nn.functional as F
 from torch.optim import Adam
 from torch.autograd import Variable
 from torch.utils.data import DataLoader, Dataset
@@ -52,7 +53,8 @@ from tqdm import tqdm
 import time
 from imutils import paths
 
-import EarlyStopping as stopping
+import PlotResults as pr
+
 
 # Performance Metrics
 from sklearn.metrics import multilabel_confusion_matrix
@@ -66,41 +68,35 @@ print(device)
 
 
 
+class DiceBCELoss(nn.Module):
+    def __init__(self, weight=None, size_average=True):
+        super(DiceBCELoss, self).__init__()
 
-def validate_model(model, dataloader, loss_function, device):
-  print("Validating...")
+    def forward(self, inputs, targets, smooth=1):
+        
+        # Apply sigmoid activation (comment out if your model contains a sigmoid or equivalent activation layer)
+        inputs = torch.sigmoid(inputs)       
+        
+        # Flatten label and prediction tensors
+        inputs = inputs.view(-1)
+        targets = targets.view(-1)
 
-  totalValLoss = 0
+        # print(f"Dice funct dims of inputs = {inputs.shape}")
+        # print(f"Dice funct dims of targets = {targets.shape}")
 
-  model.eval()
+        # Calculate intersection and union
+        intersection = (inputs * targets).sum()
+        union = inputs.sum() + targets.sum()
 
-  with torch.no_grad():
-      # total_val_loss = 0
+        # Calculate Dice loss
+        dice_loss = 1 - (2. * intersection + smooth) / (union + smooth)
 
-      for orig_images, altered_images, masks in dataloader:
-          
-          orig_images, altered_images, masks = orig_images.to(device), altered_images.to(device), masks.to(device)
-          input_tensor = torch.cat([orig_images, altered_images], dim=3)
-          pred_masks = model(input_tensor) # validate on altered_images
+        # Calculate BCE loss
+        BCE = F.binary_cross_entropy(inputs, targets, reduction='mean')
 
-          # Split the predicted masks back into two halves
-          batch_size = orig_images.size(0)
-          pred_masks_orig, pred_masks_altered = torch.split(pred_masks, batch_size, dim=0)
-
-          # Compute loss separately for original and altered images
-          loss_orig = loss_function(pred_masks_orig, masks)
-          loss_altered = loss_function(pred_masks_altered, masks)
-
-          # Total loss is the sum of losses for original and altered images
-          val_loss = loss_orig + loss_altered
-
-          totalValLoss += val_loss.item()
-
-  avg_val_loss = totalValLoss / len(dataloader)
-
-  return avg_val_loss
-
-
-
+        # Calculate combined Dice and BCE loss
+        Dice_BCE = BCE + dice_loss
+        
+        return Dice_BCE
 
 

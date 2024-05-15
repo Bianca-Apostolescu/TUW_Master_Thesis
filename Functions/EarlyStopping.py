@@ -52,7 +52,8 @@ from tqdm import tqdm
 import time
 from imutils import paths
 
-import EarlyStopping as stopping
+import PlotResults as pr
+
 
 # Performance Metrics
 from sklearn.metrics import multilabel_confusion_matrix
@@ -65,42 +66,25 @@ print(device)
 # %matplotlib inline
 
 
+class EarlyStopping:
+    def __init__(self, patience=5, verbose=False):
+        self.patience = patience
+        self.verbose = verbose
+        self.counter = 0
+        self.best_loss = None
+        self.early_stop = False
 
-
-def validate_model(model, dataloader, loss_function, device):
-  print("Validating...")
-
-  totalValLoss = 0
-
-  model.eval()
-
-  with torch.no_grad():
-      # total_val_loss = 0
-
-      for orig_images, altered_images, masks in dataloader:
-          
-          orig_images, altered_images, masks = orig_images.to(device), altered_images.to(device), masks.to(device)
-          input_tensor = torch.cat([orig_images, altered_images], dim=3)
-          pred_masks = model(input_tensor) # validate on altered_images
-
-          # Split the predicted masks back into two halves
-          batch_size = orig_images.size(0)
-          pred_masks_orig, pred_masks_altered = torch.split(pred_masks, batch_size, dim=0)
-
-          # Compute loss separately for original and altered images
-          loss_orig = loss_function(pred_masks_orig, masks)
-          loss_altered = loss_function(pred_masks_altered, masks)
-
-          # Total loss is the sum of losses for original and altered images
-          val_loss = loss_orig + loss_altered
-
-          totalValLoss += val_loss.item()
-
-  avg_val_loss = totalValLoss / len(dataloader)
-
-  return avg_val_loss
-
-
-
-
-
+    def __call__(self, val_loss):
+        if self.best_loss is None:
+            self.best_loss = val_loss
+        elif val_loss > self.best_loss:
+            self.counter += 1
+            if self.verbose:
+                print(f"Validation loss has not improved in {self.counter} epochs.")
+            if self.counter >= self.patience:
+                if self.verbose:
+                    print("Stopping early!")
+                self.early_stop = True
+        else:
+            self.best_loss = val_loss
+            self.counter = 0

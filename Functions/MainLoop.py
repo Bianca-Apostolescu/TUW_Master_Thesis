@@ -68,6 +68,8 @@ import TestModel as testModel
 import CreateDataset as crd
 import DisplayMetrics as dm
 import PlotResults as pr
+import EarlyStopping as stopping
+import DiceLoss as dcloss
 # import MainLoop as main
 
 
@@ -117,7 +119,7 @@ def main_loop(original_images, altered_images, masks, transforms_train, transfor
           unet = smp.Unet(
                 encoder_name = "resnet101",
                 encoder_weights = "imagenet",
-                in_channels = 3,  # 3 channels for the image
+                in_channels = 6,  # 3 channels for the image
                 classes = 1,  # 1 class => binary mask
                 activation = 'sigmoid'
                ).to(device)
@@ -125,7 +127,8 @@ def main_loop(original_images, altered_images, masks, transforms_train, transfor
           model = unet
 
           # Initialize loss function and optimizer
-          lossFunc = nn.BCEWithLogitsLoss()
+          # lossFunc = nn.BCEWithLogitsLoss()
+          lossFunc = dcloss.DiceBCELoss()
           opt = torch.optim.Adam(model.parameters(), lr = lr)
 
           wandb.init(
@@ -152,6 +155,15 @@ def main_loop(original_images, altered_images, masks, transforms_train, transfor
 
               #### VALIDATION LOOP ####
               avg_val_loss = valModel.validate_model(model, val_loader, lossFunc, device)
+
+              early_stopping = stopping.EarlyStopping(patience = 5, verbose = True)
+
+              # Check if validation loss has improved
+              early_stopping(avg_val_loss)
+
+              # If validation loss hasn't improved, break the loop
+              if early_stopping.early_stop:
+                  print("Early stopping")
 
 
               # Log the losses to WandB
