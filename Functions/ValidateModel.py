@@ -80,20 +80,21 @@ def validate_model(model, dataloader, loss_function, device):
       for orig_images, altered_images, masks in dataloader:
           
           orig_images, altered_images, masks = orig_images.to(device), altered_images.to(device), masks.to(device)
-          input_tensor = torch.cat([orig_images, altered_images], dim=3)
+          input_tensor = torch.cat([orig_images, altered_images], dim=1)
           pred_masks = model(input_tensor) # validate on altered_images
 
-          # Split the predicted masks back into two halves
-          batch_size = orig_images.size(0)
-          pred_masks_orig, pred_masks_altered = torch.split(pred_masks, batch_size, dim=0)
+          # # Split the predicted masks back into two halves
+          # batch_size = orig_images.size(0)
+          # pred_masks_orig, pred_masks_altered = torch.split(pred_masks, batch_size, dim=0)
 
-          # Compute loss separately for original and altered images
-          loss_orig = loss_function(pred_masks_orig, masks)
-          loss_altered = loss_function(pred_masks_altered, masks)
+          # # Compute loss separately for original and altered images
+          # loss_orig = loss_function(pred_masks_orig, masks)
+          # loss_altered = loss_function(pred_masks_altered, masks)
 
-          # Total loss is the sum of losses for original and altered images
-          val_loss = loss_orig + loss_altered
+          # # Total loss is the sum of losses for original and altered images
+          # val_loss = loss_orig + loss_altered
 
+          val_loss = loss_function(pred_masks, masks)
           totalValLoss += val_loss.item()
 
   avg_val_loss = totalValLoss / len(dataloader)
