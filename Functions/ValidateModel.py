@@ -80,9 +80,11 @@ def validate_model(model, dataloader, loss_function, device):
       for orig_images, altered_images, masks in dataloader:
           
           orig_images, altered_images, masks = orig_images.to(device), altered_images.to(device), masks.to(device)
-          input_tensor = torch.cat([orig_images, altered_images], dim=1)
-          pred_masks = model(input_tensor) # validate on altered_images
+          pred_masks = model(altered_images) # validate on altered_images
 
+          # input_tensor = torch.cat([orig_images, altered_images], dim=1)
+          # pred_masks = model(input_tensor)
+          
           # # Split the predicted masks back into two halves
           # batch_size = orig_images.size(0)
           # pred_masks_orig, pred_masks_altered = torch.split(pred_masks, batch_size, dim=0)

@@ -85,8 +85,10 @@ def test_model(model, dataloader, loss_function, device):
         
         for orig_images, altered_images, masks in dataloader:
             orig_images, altered_images, masks = orig_images.to(device), altered_images.to(device), masks.to(device)
-            input_tensor = torch.cat([orig_images, altered_images], dim=1) # channel
-            pred_masks = model(input_tensor)
+            pred_masks = model(altered_images)
+            
+            # input_tensor = torch.cat([orig_images, altered_images], dim=1) # channel
+            # pred_masks = model(input_tensor)
             # pred_masks = model(altered_images) # Testing for altered images 
             
             # tTransform both masks into binary - just to be sure 

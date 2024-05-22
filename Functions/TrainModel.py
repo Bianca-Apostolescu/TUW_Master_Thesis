@@ -75,8 +75,10 @@ def train_model(model, dataloader, loss_function, optim, device):
       images, altered_images, masks = orig_images.to(device), altered_images.to(device), masks.to(device)
 
       optim.zero_grad()
-      input_tensor = torch.cat([images, altered_images], dim=1) # channel
-      pred_masks = model(input_tensor) # they are not binary => the binary masks are displayed using the vizualize function with a threshold
+      pred_masks = model(altered_images)
+
+      # input_tensor = torch.cat([images, altered_images], dim=1) # channel
+      # pred_masks = model(input_tensor) # they are not binary => the binary masks are displayed using the vizualize function with a threshold
       # pred_masks = torch.sigmoid(pred_masks)
 
       # print(f"training images = {images.shape}")

@@ -65,7 +65,7 @@ import BinaryMasks as bm
 import TrainModel as trModel
 import ValidateModel as valModel
 import TestModel as testModel
-import CreateDataset as crd
+import CreateDataset_Comofod as crd
 import DisplayMetrics as dm
 import PlotResults as pr
 import EarlyStopping as stopping
@@ -119,7 +119,7 @@ def main_loop(original_images, altered_images, masks, transforms_train, transfor
           unet = smp.Unet(
                 encoder_name = "resnet101",
                 encoder_weights = "imagenet",
-                in_channels = 6,  # 3 channels for the image
+                in_channels = 3,  # 3 channels for the image
                 classes = 1,  # 1 class => binary mask
                 activation = 'sigmoid'
                ).to(device)
