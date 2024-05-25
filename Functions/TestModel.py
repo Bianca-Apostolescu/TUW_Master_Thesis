@@ -71,7 +71,7 @@ print(device)
 
 
 
-def test_model(model, dataloader, loss_function, device):
+def test_model(model, dataloader, loss_function, device, channels):
     print("Testing...")
 
 
@@ -86,13 +86,14 @@ def test_model(model, dataloader, loss_function, device):
         for orig_images, altered_images, masks in dataloader:
             orig_images, altered_images, masks = orig_images.to(device), altered_images.to(device), masks.to(device)
             
-            # For 3 channels - only the altered image as input
-            # pred_masks = model(altered_images)
+            if channels == 3:
+              # For 3 channels - only the altered image as input
+              pred_masks = model(altered_images)
             
-
-            # For 6 channels - altered + original image as input (concat on channel dim)
-            input_tensor = torch.cat([orig_images, altered_images], dim=1) # channel
-            pred_masks = model(input_tensor)
+            elif channels == 6:
+              # For 6 channels - altered + original image as input (concat on channel dim)
+              input_tensor = torch.cat([orig_images, altered_images], dim=1) # channel
+              pred_masks = model(input_tensor)
             
             # tTransform both masks into binary - just to be sure 
             masks = (masks > 0.5).float()

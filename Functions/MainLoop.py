@@ -65,11 +65,13 @@ import BinaryMasks as bm
 import TrainModel as trModel
 import ValidateModel as valModel
 import TestModel as testModel
-import CreateDataset_Comofod as crd
+import CreateDataset_Comofod as com
+import CreateDataset_IMD2020 as imd
 import DisplayMetrics as dm
 import PlotResults as pr
 import EarlyStopping as stopping
 import DiceLoss as dcloss
+import GCANet as gca
 # import MainLoop as main
 
 
@@ -81,9 +83,12 @@ print(device)
 
 
 
-def main_loop(original_images, altered_images, masks, transforms_train, transforms_test, wb_name, lr, batch_size, epochs, test_split, valid_split):
+def main_loop(original_images, altered_images, masks, transforms_train, transforms_test, model_type, channels, dataset_type, wb_name, lr, batch_size, epochs, test_split, valid_split):
     
     wandb.login()
+
+    
+
 
     for tts in test_split:
         print("[INFO] TEST_SPLIT = {} ...".format(tts))
@@ -95,9 +100,14 @@ def main_loop(original_images, altered_images, masks, transforms_train, transfor
         train_orig_images, val_orig_images, train_altered_images, val_altered_images, train_masks, val_masks = train_test_split(train_orig_images, train_altered_images, train_masks, test_size = valid_split, random_state = 42)
 
         # Create datasets and data loaders for training, validation, and testing sets
-        train_dataset = crd.SegmentationDataset(train_orig_images, train_altered_images, train_masks, transforms = transforms_train)
-        val_dataset   = crd.SegmentationDataset(val_orig_images,   val_altered_images,   val_masks,   transforms = transforms_test)
-        test_dataset  = crd.SegmentationDataset(test_orig_images,  test_altered_images,  test_masks,  transforms = transforms_test)
+        if dataset_type == 'comofod':
+          train_dataset = com.SegmentationDataset(train_orig_images, train_altered_images, train_masks, transforms = transforms_train)
+          val_dataset   = com.SegmentationDataset(val_orig_images,   val_altered_images,   val_masks,   transforms = transforms_test)
+          test_dataset  = com.SegmentationDataset(test_orig_images,  test_altered_images,  test_masks,  transforms = transforms_test)
+        elif dataset_type == 'imd':
+          train_dataset = imd.SegmentationDataset(train_orig_images, train_altered_images, train_masks, transforms = transforms_train)
+          val_dataset   = imd.SegmentationDataset(val_orig_images,   val_altered_images,   val_masks,   transforms = transforms_test)
+          test_dataset  = imd.SegmentationDataset(test_orig_images,  test_altered_images,  test_masks,  transforms = transforms_test)
 
         train_loader = DataLoader(train_dataset, shuffle = True,  batch_size = batch_size)
         val_loader   = DataLoader(val_dataset,   shuffle = False, batch_size = batch_size)
@@ -116,15 +126,19 @@ def main_loop(original_images, altered_images, masks, transforms_train, transfor
 
         for epoch in epochs:
 
-          unet = smp.Unet(
-                encoder_name = "resnet101",
-                encoder_weights = "imagenet",
-                in_channels = 3,  # 3 channels for the image
-                classes = 1,  # 1 class => binary mask
-                activation = 'sigmoid'
-               ).to(device)
+          if model_type == 'GCA':
+            gcanet = gca.GCANet(in_c = channels, out_c = 1, only_residual = True).to(device)
+            model = gcanet
 
-          model = unet
+          elif model_type == 'unet':
+            unet = smp.Unet(
+                  encoder_name = "resnet101",
+                  encoder_weights = "imagenet",
+                  in_channels = channels,  # 3 channels for the image
+                  classes = 1,  # 1 class => binary mask
+                  activation = 'sigmoid'
+                ).to(device)
+            model = unet
 
           # Initialize loss function and optimizer
           # lossFunc = nn.BCEWithLogitsLoss()
@@ -150,11 +164,11 @@ def main_loop(original_images, altered_images, masks, transforms_train, transfor
           for e in tqdm(range(epoch)):
 
               #### TRAINING LOOP ####
-              avg_train_loss = trModel.train_model(model, train_loader, lossFunc, opt, device)
+              avg_train_loss = trModel.train_model(model, train_loader, lossFunc, opt, device, channels)
               
 
               #### VALIDATION LOOP ####
-              avg_val_loss = valModel.validate_model(model, val_loader, lossFunc, device)
+              avg_val_loss = valModel.validate_model(model, val_loader, lossFunc, device, channels)
 
               early_stopping = stopping.EarlyStopping(patience = 5, verbose = True)
 
@@ -181,7 +195,7 @@ def main_loop(original_images, altered_images, masks, transforms_train, transfor
 
 
           #### TESTING LOOP ####
-          avg_test_loss, avg_accuracy, avg_precision, avg_recall, avg_f1_score, avg_dice_score, avg_iou = testModel.test_model(model, test_loader, lossFunc, device)
+          avg_test_loss, avg_accuracy, avg_precision, avg_recall, avg_f1_score, avg_dice_score, avg_iou = testModel.test_model(model, test_loader, lossFunc, device, channels)
 
           print(f"avg_accuracy = {avg_accuracy}, avg_precision = {avg_precision}, avg_recall = {avg_recall}, avg_f1_score = {avg_f1_score}, avg_dice_score = {avg_dice_score}, avg_iou = {avg_iou}")
 

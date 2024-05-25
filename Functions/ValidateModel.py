@@ -67,7 +67,7 @@ print(device)
 
 
 
-def validate_model(model, dataloader, loss_function, device):
+def validate_model(model, dataloader, loss_function, device, channels):
   print("Validating...")
 
   totalValLoss = 0
@@ -81,13 +81,14 @@ def validate_model(model, dataloader, loss_function, device):
           
           orig_images, altered_images, masks = orig_images.to(device), altered_images.to(device), masks.to(device)
           
-          # For 3 channels - only the altered image as input
-          # pred_masks = model(altered_images) # validate on altered_images
+          if channels == 3:
+            # For 3 channels - only the altered image as input
+            pred_masks = model(altered_images) # validate on altered_images
 
-
-          # For 6 channels - altered + original image as input (concat on channel dim)
-          input_tensor = torch.cat([orig_images, altered_images], dim=1)
-          pred_masks = model(input_tensor)
+          elif channels == 6:
+            # For 6 channels - altered + original image as input (concat on channel dim)
+            input_tensor = torch.cat([orig_images, altered_images], dim=1)
+            pred_masks = model(input_tensor)
           
 
           # # For 6 channels - altered + original image as input (concat on width dim)

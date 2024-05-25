@@ -64,7 +64,7 @@ print(device)
 
 
 
-def train_model(model, dataloader, loss_function, optim, device):
+def train_model(model, dataloader, loss_function, optim, device, channels):
   print("Training...")
 
   totalTrainLoss = 0
@@ -76,12 +76,14 @@ def train_model(model, dataloader, loss_function, optim, device):
 
       optim.zero_grad()
 
-      # For 3 channels - only the altered image as input
-      # pred_masks = model(altered_images)
-
-      # For 6 channels - altered + original image as input (concat on channel dim)
-      input_tensor = torch.cat([images, altered_images], dim=1) # channel
-      pred_masks = model(input_tensor) # they are not binary => the binary masks are displayed using the vizualize function with a threshold
+      if channels == 3:
+        # For 3 channels - only the altered image as input
+        pred_masks = model(altered_images)
+      
+      elif channels == 6:
+        # For 6 channels - altered + original image as input (concat on channel dim)
+        input_tensor = torch.cat([images, altered_images], dim=1) # channel
+        pred_masks = model(input_tensor) # they are not binary => the binary masks are displayed using the vizualize function with a threshold
 
       # print(f"training images = {images.shape}")
       # print(f"training altered_images = {altered_images.shape}")
