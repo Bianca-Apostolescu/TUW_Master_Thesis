@@ -75,11 +75,13 @@ def train_model(model, dataloader, loss_function, optim, device):
       images, altered_images, masks = orig_images.to(device), altered_images.to(device), masks.to(device)
 
       optim.zero_grad()
-      pred_masks = model(altered_images)
 
-      # input_tensor = torch.cat([images, altered_images], dim=1) # channel
-      # pred_masks = model(input_tensor) # they are not binary => the binary masks are displayed using the vizualize function with a threshold
-      # pred_masks = torch.sigmoid(pred_masks)
+      # For 3 channels - only the altered image as input
+      # pred_masks = model(altered_images)
+
+      # For 6 channels - altered + original image as input (concat on channel dim)
+      input_tensor = torch.cat([images, altered_images], dim=1) # channel
+      pred_masks = model(input_tensor) # they are not binary => the binary masks are displayed using the vizualize function with a threshold
 
       # print(f"training images = {images.shape}")
       # print(f"training altered_images = {altered_images.shape}")
@@ -88,6 +90,8 @@ def train_model(model, dataloader, loss_function, optim, device):
       # print(f"training pred_masks = {pred_masks.shape}")
       # print(f"training masks = {masks.shape}")
 
+
+      # # For 6 channels - altered + original image as input (concat on width dim)
       # # Split the predicted masks back into two halves
       # batch_size = images.size(0)
       # pred_masks_orig, pred_masks_altered = torch.split(pred_masks, batch_size, dim=0)
