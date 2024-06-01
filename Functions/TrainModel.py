@@ -64,54 +64,80 @@ print(device)
 
 
 
-def train_model(model, dataloader, loss_function, optim, device, channels):
+def train_model(model, dataloader, loss_function, optim, device, channels, dataset_type):
   print("Training...")
 
   totalTrainLoss = 0
 
   model.train() # unet.train.train() 
 
-  for orig_images, altered_images, masks in dataloader:
-      images, altered_images, masks = orig_images.to(device), altered_images.to(device), masks.to(device)
+  if dataset_type == 'comofod' or dataset_type == 'imd':
 
-      optim.zero_grad()
+    for orig_images, altered_images, masks in dataloader:
+        images, altered_images, masks = orig_images.to(device), altered_images.to(device), masks.to(device)
 
-      if channels == 3:
-        # For 3 channels - only the altered image as input
-        pred_masks = model(altered_images)
-      
-      elif channels == 6:
-        # For 6 channels - altered + original image as input (concat on channel dim)
-        input_tensor = torch.cat([images, altered_images], dim=1) # channel
-        pred_masks = model(input_tensor) # they are not binary => the binary masks are displayed using the vizualize function with a threshold
+        optim.zero_grad()
 
-      # print(f"training images = {images.shape}")
-      # print(f"training altered_images = {altered_images.shape}")
-      # print(f"training input_tensor = {input_tensor.shape}")
+        if channels == 3:
+          # For 3 channels - only the altered image as input
+          pred_masks = model(altered_images)
+        
+        elif channels == 6:
+          # For 6 channels - altered + original image as input (concat on channel dim)
+          input_tensor = torch.cat([images, altered_images], dim=1) # channel
+          pred_masks = model(input_tensor) # they are not binary => the binary masks are displayed using the vizualize function with a threshold
 
-      # print(f"training pred_masks = {pred_masks.shape}")
-      # print(f"training masks = {masks.shape}")
+        # print(f"training images = {images.shape}")
+        # print(f"training altered_images = {altered_images.shape}")
+        # print(f"training input_tensor = {input_tensor.shape}")
+
+        # print(f"training pred_masks = {pred_masks.shape}")
+        # print(f"training masks = {masks.shape}")
 
 
-      # # For 6 channels - altered + original image as input (concat on width dim)
-      # # Split the predicted masks back into two halves
-      # batch_size = images.size(0)
-      # pred_masks_orig, pred_masks_altered = torch.split(pred_masks, batch_size, dim=0)
+        # # For 6 channels - altered + original image as input (concat on width dim)
+        # # Split the predicted masks back into two halves
+        # batch_size = images.size(0)
+        # pred_masks_orig, pred_masks_altered = torch.split(pred_masks, batch_size, dim=0)
 
-      # # Compute loss separately for original and altered images
-      # loss_orig = loss_function(pred_masks_orig, masks)
-      # loss_altered = loss_function(pred_masks_altered, masks)
+        # # Compute loss separately for original and altered images
+        # loss_orig = loss_function(pred_masks_orig, masks)
+        # loss_altered = loss_function(pred_masks_altered, masks)
 
-      # # Total loss is the sum of losses for original and altered images
-      # loss = loss_orig + loss_altered
+        # # Total loss is the sum of losses for original and altered images
+        # loss = loss_orig + loss_altered
 
-      loss = loss_function(pred_masks, masks)
-      loss.backward()
-      optim.step()
+        loss = loss_function(pred_masks, masks)
+        loss.backward()
+        optim.step()
 
-      pred_masks = (pred_masks > 0.5).float()
+        pred_masks = (pred_masks > 0.5).float()
 
-      totalTrainLoss += loss.item()
+        totalTrainLoss += loss.item()
+
+  elif dataset_type == 'sroie':
+
+    for orig_images, altered_images, masks in dataloader:
+        images, altered_images, masks = orig_images.to(device), altered_images.to(device), masks.to(device)
+
+        optim.zero_grad()
+
+        if channels == 3:
+          # For 3 channels - only the altered image as input
+          pred_masks = model(images)
+        
+        elif channels == 6:
+          # For 6 channels - altered + original image as input (concat on channel dim)
+          input_tensor = torch.cat([images, altered_images], dim=1) # channel
+          pred_masks = model(input_tensor) # they are not binary => the binary masks are displayed using the vizualize function with a threshold
+
+        loss = loss_function(pred_masks, masks)
+        loss.backward()
+        optim.step()
+
+        pred_masks = (pred_masks > 0.5).float()
+
+        totalTrainLoss += loss.item()
 
   avg_train_loss = totalTrainLoss / len(dataloader)
 

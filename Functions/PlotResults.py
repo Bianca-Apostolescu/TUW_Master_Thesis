@@ -65,49 +65,31 @@ print(device)
 
 
 
-def plot_results(lent, orig_images, altered_images, masks, pred_masks):
+def plot_results(lent, orig_images, altered_images, masks, pred_masks, dataset_type):
     
-    for i in range (0, lent): # range (0, lent) - for every image combination
+    if dataset_type == 'comofod' or dataset_type == 'imd':
+      for i in range (0, lent): # range (0, lent) - for every image combination
+            
+            # Log image(s)
+            wandb.log(
+                    {"original_images": [wandb.Image(orig_images.cpu().numpy()[i].transpose(1, 2, 0), caption = "Original_Image")],
+                    "altered_images": [wandb.Image(altered_images.cpu().numpy()[i].transpose(1, 2, 0), caption = "Altered_Image")],
+                    "gt_masks": [wandb.Image(masks.cpu().numpy()[i][0], caption = "GT_Mask")],
+                    "pred_masks": [wandb.Image(pred_masks.cpu().numpy()[i][0], caption = "Pred_Mask")]
+                    })
+
+    elif dataset_type == 'sroie':
+      for i in range (0, lent): # range (0, lent) - for every image combination
+            
+            # Log image(s)
+            wandb.log(
+                    {"original_images": [wandb.Image(orig_images.cpu().numpy()[i].transpose(1, 2, 0), caption = "Original_Image")],
+                    "bb_masks": [wandb.Image(altered_images.cpu().numpy()[i].transpose(1, 2, 0), caption = "BB_Mask")],
+                    "gt_masks": [wandb.Image(masks.cpu().numpy()[i][0], caption = "GT_Mask")],
+                    "pred_masks": [wandb.Image(pred_masks.cpu().numpy()[i][0], caption = "Pred_Mask")]
+                    })
           
-          # Log image(s)
-          wandb.log(
-                  {"original_images": [wandb.Image(orig_images.cpu().numpy()[i].transpose(1, 2, 0), caption = "Original_Image")],
-                   "altered_images": [wandb.Image(altered_images.cpu().numpy()[i].transpose(1, 2, 0), caption = "Altered_Image")],
-                   "gt_masks": [wandb.Image(masks.cpu().numpy()[i][0], caption = "GT_Mask")],
-                   "pred_masks": [wandb.Image(pred_masks.cpu().numpy()[i][0], caption = "Pred_Mask")]
-                  })
-          
-          # plt.figure(figsize = (12, 12))
-
-          # # plot original image
-          # plt.subplot(141)
-          # plt.imshow(orig_images.cpu().numpy()[i].transpose(1, 2, 0))
-          # plt.title('Original Image')
-          # plt.axis('off')
-
-          # # plot altered image
-          # plt.subplot(142)
-          # plt.imshow(altered_images.cpu().numpy()[i].transpose(1, 2, 0))
-          # plt.title('Altered Image')
-          # plt.axis('off')
-
-          # # plot ground truth mask
-          # plt.subplot(143)
-          # plt.imshow(masks.cpu().numpy()[i][0], cmap='gray')
-          # plt.title('Ground Truth Mask')
-          # plt.axis('off')
-
-          # # plot predicted mask
-          # plt.subplot(144)
-          # plt.imshow(pred_masks.cpu().numpy()[i][0], cmap='gray')
-          # plt.title('Predicted Mask')
-          # plt.axis('off')
-
-          # # display the plot
-          # plt.show()
-
-
-# In[5]:
+  
 
 
 

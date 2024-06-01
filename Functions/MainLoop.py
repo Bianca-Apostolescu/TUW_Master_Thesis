@@ -67,6 +67,7 @@ import ValidateModel as valModel
 import TestModel as testModel
 import CreateDataset_Comofod as com
 import CreateDataset_IMD2020 as imd
+import CreateDataset_SROIE as sroie
 import DisplayMetrics as dm
 import PlotResults as pr
 import EarlyStopping as stopping
@@ -96,8 +97,15 @@ def main_loop(original_images, altered_images, masks, transforms_train, transfor
         print("Splits, Datasets, and Dataloaders")
         startTime = time.time()
 
-        train_orig_images, test_orig_images, train_altered_images, test_altered_images, train_masks, test_masks = train_test_split(original_images, altered_images, masks, test_size = tts, random_state = 42)
-        train_orig_images, val_orig_images, train_altered_images, val_altered_images, train_masks, val_masks = train_test_split(train_orig_images, train_altered_images, train_masks, test_size = valid_split, random_state = 42)
+        if dataset_type == 'comofod' or dataset_type == 'imd':
+          train_orig_images, test_orig_images, train_altered_images, test_altered_images, train_masks, test_masks = train_test_split(original_images, altered_images, masks, test_size = tts, random_state = 42)
+          train_orig_images, val_orig_images, train_altered_images, val_altered_images, train_masks, val_masks = train_test_split(train_orig_images, train_altered_images, train_masks, test_size = valid_split, random_state = 42)
+        
+        # elif dataset_type == 'sroie':
+        #   train_orig_images, train_altered_images, train_masks = original_images[0], altered_images[0], masks[0]
+        #   test_orig_images,  test_altered_images,  test_masks  = original_images[1], altered_images[1], masks[1]
+        #   val_orig_images,   val_altered_images,   val_masks   = original_images[2], altered_images[2], masks[2]
+
 
         # Create datasets and data loaders for training, validation, and testing sets
         if dataset_type == 'comofod':
@@ -108,19 +116,28 @@ def main_loop(original_images, altered_images, masks, transforms_train, transfor
           train_dataset = imd.SegmentationDataset(train_orig_images, train_altered_images, train_masks, transforms = transforms_train)
           val_dataset   = imd.SegmentationDataset(val_orig_images,   val_altered_images,   val_masks,   transforms = transforms_test)
           test_dataset  = imd.SegmentationDataset(test_orig_images,  test_altered_images,  test_masks,  transforms = transforms_test)
+        # elif dataset_type == 'sroie':
+        #   train_dataset = sroie.SegmentationDataset(train_orig_images, train_altered_images, train_masks, transforms = transforms_train)
+        #   val_dataset   = sroie.SegmentationDataset(val_orig_images,   val_altered_images,   val_masks,   transforms = transforms_test)
+        #   test_dataset  = sroie.SegmentationDataset(test_orig_images,  test_altered_images,  test_masks,  transforms = transforms_test)
 
-        train_loader = DataLoader(train_dataset, shuffle = True,  batch_size = batch_size)
-        val_loader   = DataLoader(val_dataset,   shuffle = False, batch_size = batch_size)
-        test_loader  = DataLoader(test_dataset,  shuffle = False, batch_size = batch_size)
+        if dataset_type == 'comofod' or dataset_type == 'imd':
+          train_loader = DataLoader(train_dataset, shuffle = True,  batch_size = batch_size)
+          val_loader   = DataLoader(val_dataset,   shuffle = False, batch_size = batch_size)
+          test_loader  = DataLoader(test_dataset,  shuffle = False, batch_size = batch_size)
 
+        elif dataset_type == 'sroie':
+          train_loader = original_images
+          test_loader  = altered_images
+          val_loader   = masks 
 
         endTime = time.time()
         print("[INFO] Total time taken to create the dataset and dataloader: {:.2f}s".format(endTime - startTime))
 
         # calculate steps per epoch for training set
-        trainSteps = len(train_dataset) // batch_size
-        testSteps  = len(test_dataset) // batch_size
-        valSteps   = len(val_dataset) // batch_size
+        trainSteps = len(train_loader.dataset) // batch_size
+        testSteps  = len(test_loader.dataset) // batch_size
+        valSteps   = len(val_loader.dataset) // batch_size
 
         print(f"trainSteps = {trainSteps}, testSteps = {testSteps}, valSteps = {valSteps}")
 
@@ -164,11 +181,11 @@ def main_loop(original_images, altered_images, masks, transforms_train, transfor
           for e in tqdm(range(epoch)):
 
               #### TRAINING LOOP ####
-              avg_train_loss = trModel.train_model(model, train_loader, lossFunc, opt, device, channels)
+              avg_train_loss = trModel.train_model(model, train_loader, lossFunc, opt, device, channels, dataset_type)
               
 
               #### VALIDATION LOOP ####
-              avg_val_loss = valModel.validate_model(model, val_loader, lossFunc, device, channels)
+              avg_val_loss = valModel.validate_model(model, val_loader, lossFunc, device, channels, dataset_type)
 
               early_stopping = stopping.EarlyStopping(patience = 5, verbose = True)
 
@@ -195,7 +212,7 @@ def main_loop(original_images, altered_images, masks, transforms_train, transfor
 
 
           #### TESTING LOOP ####
-          avg_test_loss, avg_accuracy, avg_precision, avg_recall, avg_f1_score, avg_dice_score, avg_iou = testModel.test_model(model, test_loader, lossFunc, device, channels)
+          avg_test_loss, avg_accuracy, avg_precision, avg_recall, avg_f1_score, avg_dice_score, avg_iou = testModel.test_model(model, test_loader, lossFunc, device, channels, dataset_type)
 
           print(f"avg_accuracy = {avg_accuracy}, avg_precision = {avg_precision}, avg_recall = {avg_recall}, avg_f1_score = {avg_f1_score}, avg_dice_score = {avg_dice_score}, avg_iou = {avg_iou}")
 
