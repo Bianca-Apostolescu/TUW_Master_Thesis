@@ -117,14 +117,14 @@ def train_model(model, dataloader, loss_function, optim, device, channels, datas
 
   elif dataset_type == 'sroie':
 
-    for orig_images, altered_images, masks in dataloader:
-        images, altered_images, masks = orig_images.to(device), altered_images.to(device), masks.to(device)
+    for orig_images, altered_images, masks, labels in dataloader:
+        images, altered_images, masks, labels = orig_images.to(device), altered_images.to(device), masks.to(device), labels.to(device)
 
         optim.zero_grad()
 
         if channels == 3:
           # For 3 channels - only the altered image as input
-          pred_masks = model(images)
+          pred_masks = model(images, labels)
         
         elif channels == 6:
           # For 6 channels - altered + original image as input (concat on channel dim)

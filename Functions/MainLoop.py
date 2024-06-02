@@ -211,6 +211,11 @@ def main_loop(original_images, altered_images, masks, transforms_train, transfor
           print("[INFO] Total time taken to train and validate the model: {:.2f}s".format(endTime - startTime))
 
 
+          # Save models 
+          # torch.save(model.state_dict(), f'epoch_{epoch}_model.pth')
+          model.save(os.path.join(wandb.run.dir, f'epoch_{epoch}_model.pth'))
+          wandb.save(f'epoch_{epoch}_model.pth')
+
           #### TESTING LOOP ####
           avg_test_loss, avg_accuracy, avg_precision, avg_recall, avg_f1_score, avg_dice_score, avg_iou = testModel.test_model(model, test_loader, lossFunc, device, channels, dataset_type)
 

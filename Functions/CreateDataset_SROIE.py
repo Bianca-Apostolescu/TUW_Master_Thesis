@@ -84,18 +84,20 @@ class SegmentationDataset(Dataset):
             # Load binary mask for forged images
             binary_mask = Image.open(binary_mask_filename).convert("L")
             bounding_box_mask = Image.open(bounding_box_mask_filename).convert("RGB")
+            label = torch.tensor(1)  # Forged
         else:
             # Create black mask for non-forged images
             binary_mask = Image.new("L", original_img.size, color=0)
             # Copy original image for bounding box mask
             bounding_box_mask = original_img.copy()
+            label = torch.tensor(0)  # Not forged
 
         if self.transform:
             original_img = self.transform(original_img)
             binary_mask = self.transform(binary_mask)
             bounding_box_mask = self.transform(bounding_box_mask)
 
-        return original_img, bounding_box_mask, binary_mask
+        return original_img, bounding_box_mask, binary_mask, label
 
 
 
