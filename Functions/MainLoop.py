@@ -212,8 +212,8 @@ def main_loop(original_images, altered_images, masks, transforms_train, transfor
 
 
           # Save models 
-          # torch.save(model.state_dict(), f'epoch_{epoch}_model.pth')
-          model.save(os.path.join(wandb.run.dir, f'epoch_{epoch}_model.pth'))
+          torch.save(model.state_dict(), f'epoch_{epoch}_model.pth')
+          # model.save(os.path.join(wandb.run.dir, f'epoch_{epoch}_model.pth'))
           wandb.save(f'epoch_{epoch}_model.pth')
 
           #### TESTING LOOP ####

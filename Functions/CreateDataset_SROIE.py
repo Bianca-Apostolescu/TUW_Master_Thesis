@@ -63,41 +63,36 @@ print(device)
 # %matplotlib inline
 
 class SegmentationDataset(Dataset):
-    def __init__(self, csv_file, images_dir, binary_masks_dir, bounding_box_masks_dir, transform=None):
-        self.df = pd.read_csv(csv_file)
-        self.images_dir = images_dir
-        self.binary_masks_dir = binary_masks_dir
-        self.bounding_box_masks_dir = bounding_box_masks_dir
+    def __init__(self, images_dir, binary_masks_dir, bounding_box_masks_dir, transform=None):
+        self.image_paths = list(paths.list_images(images_dir))
+        self.binary_mask_paths = list(paths.list_images(binary_masks_dir))
+        self.bounding_box_mask_paths = list(paths.list_images(bounding_box_masks_dir))
         self.transform = transform
 
+        # Ensure the lists are sorted for consistent ordering
+        self.image_paths.sort()
+        self.binary_mask_paths.sort()
+        self.bounding_box_mask_paths.sort()
+
     def __len__(self):
-        return len(self.df)
+        return len(self.image_paths)
 
     def __getitem__(self, idx):
-        img_filename = os.path.join(self.images_dir, self.df.iloc[idx]['image'])
-        binary_mask_filename = os.path.join(self.binary_masks_dir, str(self.df.iloc[idx]['filename']))
-        bounding_box_mask_filename = os.path.join(self.bounding_box_masks_dir, str(self.df.iloc[idx]['filename']))
+        img_filename = self.image_paths[idx]
+        binary_mask_filename = self.binary_mask_paths[idx]
+        bounding_box_mask_filename = self.bounding_box_mask_paths[idx]
 
         # Load images
         original_img = Image.open(img_filename).convert("RGB")
-        if self.df.iloc[idx]['forged'] == 1:
-            # Load binary mask for forged images
-            binary_mask = Image.open(binary_mask_filename).convert("L")
-            bounding_box_mask = Image.open(bounding_box_mask_filename).convert("RGB")
-            label = torch.tensor(1)  # Forged
-        else:
-            # Create black mask for non-forged images
-            binary_mask = Image.new("L", original_img.size, color=0)
-            # Copy original image for bounding box mask
-            bounding_box_mask = original_img.copy()
-            label = torch.tensor(0)  # Not forged
+        binary_mask = Image.open(binary_mask_filename).convert("L")
+        bounding_box_mask = Image.open(bounding_box_mask_filename).convert("RGB")
 
         if self.transform:
             original_img = self.transform(original_img)
             binary_mask = self.transform(binary_mask)
             bounding_box_mask = self.transform(bounding_box_mask)
 
-        return original_img, bounding_box_mask, binary_mask, label
+        return original_img, bounding_box_mask, binary_mask
 
 
 
