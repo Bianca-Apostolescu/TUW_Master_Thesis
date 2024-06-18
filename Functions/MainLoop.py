@@ -84,7 +84,7 @@ print(device)
 
 
 
-def main_loop(original_images, altered_images, masks, transforms_train, transforms_test, model_type, channels, dataset_type, wb_name, lr, batch_size, epochs, test_split, valid_split):
+def main_loop(original_images, altered_images, masks, transforms_train, transforms_test, model_type, channels, dataset_type, wb_name, lr, batch_size, epochs, test_split, valid_split, saved_model_path = None):
     
     wandb.login()
 
@@ -172,6 +172,29 @@ def main_loop(original_images, altered_images, masks, transforms_train, transfor
                     "batch": batch_size
                     },
             )
+
+          if saved_model_path:
+            print(f"[INFO] Loading model from {saved_model_path}")
+            checkpoint = torch.load(saved_model_path, map_location=device)
+            model.load_state_dict(checkpoint['model_state_dict'])
+
+            print("[INFO] Testing the loaded model...")
+            avg_test_loss, avg_accuracy, avg_precision, avg_recall, avg_f1_score, avg_dice_score, avg_iou = testModel.test_model(model, test_loader, lossFunc, device, channels, dataset_type)
+
+            print(f"avg_accuracy = {avg_accuracy}, avg_precision = {avg_precision}, avg_recall = {avg_recall}, avg_f1_score = {avg_f1_score}, avg_dice_score = {avg_dice_score}, avg_iou = {avg_iou}")
+
+            wandb.log(
+                {
+                    "Accuracy": avg_accuracy,
+                    "Precision": avg_precision,
+                    "Recall": avg_recall,
+                    "F1-Score": avg_f1_score,
+                    "DICE": avg_dice_score,
+                    "IOU": avg_iou,
+                }
+            )
+
+            return
 
 
           print("[INFO] Training the network for {} epochs...".format(epoch))

@@ -169,33 +169,18 @@ def test_model(model, dataloader, loss_function, device, channels, dataset_type)
               test_loss = loss_function(pred_masks, masks)
               totalTestLoss += test_loss.item()
 
-              # # Reconstruct images from patches
-              # batch_size, _, patch_height, patch_width = orig_images.shape
-              # original_image_shape = (batch_size * patch_height, batch_size * patch_width)
-              
-              # reconstructed_orig_image    = rec.reconstruct_image_from_patches(orig_images.cpu().numpy(), original_image_shape, (patch_height, patch_width), channels)
-              # reconstructed_altered_image = rec.reconstruct_image_from_patches(altered_images.cpu().numpy(), original_image_shape, (patch_height, patch_width), channels)
-              # reconstructed_mask          = rec.reconstruct_image_from_patches(masks.cpu().numpy(), original_image_shape, (patch_height, patch_width), 1)
-              # reconstructed_pred_mask     = rec.reconstruct_image_from_patches(pred_masks.cpu().numpy(), original_image_shape, (patch_height, patch_width), 1)
-
-              # # Plotting
-              # fig, axes = plt.subplots(1, 4, figsize=(20, 5))
-              # axes[0].imshow(reconstructed_orig_image)  # Assuming orig_image is in CHW format
-              # axes[0].set_title('Original Image')
-              # axes[1].imshow(reconstructed_altered_image)  # Assuming altered_image is in CHW format
-              # axes[1].set_title('Altered Image')
-              # axes[2].imshow(reconstructed_mask, cmap='gray')  # Assuming mask is a single-channel image
-              # axes[2].set_title('Ground Truth Mask')
-              # axes[3].imshow(reconstructed_pred_mask, cmap='gray')  # Assuming pred_mask is a single-channel image
-              # axes[3].set_title('Predicted Mask')
-              # plt.show()
+              # Reconstruct images from patches
+              original_image_shape = (batch_size * patch_height, batch_size * patch_width)
+              reconstructed_orig_image    = rec.reconstruct_image_from_patches(orig_images.cpu().numpy(), original_image_shape, (patch_height, patch_width))
+              reconstructed_altered_image = rec.reconstruct_image_from_patches(altered_images.cpu().numpy(), original_image_shape, (patch_height, patch_width))
+              reconstructed_mask          = rec.reconstruct_image_from_patches(masks.cpu().numpy(), original_image_shape, (patch_height, patch_width))
+              reconstructed_pred_mask     = rec.reconstruct_image_from_patches(pred_masks.cpu().numpy(), original_image_shape, (patch_height, patch_width))
 
 
               # Plot results - images 
               print('\n')
-              lent = orig_images.cpu().numpy().shape[0]
-              pr.plot_results(lent, orig_images, altered_images, masks, pred_masks, dataset_type)
-              # pr.plot_results(batch_size, reconstructed_orig_image, reconstructed_altered_image, reconstructed_mask, reconstructed_pred_mask, dataset_type)
+              # lent = orig_images.cpu().numpy().shape[0]
+              pr.plot_results(batch_size, reconstructed_orig_image, reconstructed_altered_image, reconstructed_mask, reconstructed_pred_mask, dataset_type)
 
               # Flatten the masks tensors
               masks = masks.view(-1)

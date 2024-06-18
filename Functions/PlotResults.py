@@ -79,9 +79,36 @@ def plot_results(lent, orig_images, altered_images, masks, pred_masks, dataset_t
                     })
 
     elif dataset_type == 'sroie':
-      for i in range (0, lent): # range (0, lent) - for every image combination
-            
-            # Log image(s)
+      for i in range(lent):
+            # Check if these are PyTorch tensors
+            # if isinstance(orig_images, torch.Tensor):
+            #     orig_image_np = orig_images[i].cpu().numpy().transpose(1, 2, 0)
+            # else:
+            #     orig_image_np = orig_images[i].transpose(1, 2, 0)
+
+            # if isinstance(altered_images, torch.Tensor):
+            #     bb_mask_np = altered_images[i].cpu().numpy().transpose(1, 2, 0)
+            # else:
+            #     bb_mask_np = altered_images[i].transpose(1, 2, 0)
+
+            # if isinstance(masks, torch.Tensor):
+            #     mask_np = masks[i][0].cpu().numpy()
+            # else:
+            #     mask_np = masks[i][0]
+
+            # if isinstance(pred_masks, torch.Tensor):
+            #     pred_mask_np = pred_masks[i][0].cpu().numpy()
+            # else:
+            #     pred_mask_np = pred_masks[i][0]
+
+            # # Log images using wandb
+            # wandb.log({
+            #     "original_images": [wandb.Image(orig_image_np, caption="Original_Image")],
+            #     "bb_masks": [wandb.Image(bb_mask_np, caption="BB_Mask")],
+            #     "gt_masks": [wandb.Image(mask_np, caption="GT_Mask")],
+            #     "pred_masks": [wandb.Image(pred_mask_np, caption="Pred_Mask")]
+            # })
+
             wandb.log(
                     {"original_images": [wandb.Image(orig_images.cpu().numpy()[i].transpose(1, 2, 0), caption = "Original_Image")],
                     "bb_masks": [wandb.Image(altered_images.cpu().numpy()[i].transpose(1, 2, 0), caption = "BB_Mask")],
