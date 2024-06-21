@@ -126,7 +126,7 @@ def main_loop(original_images, altered_images, masks, transforms_train, transfor
           val_loader   = DataLoader(val_dataset,   shuffle = False, batch_size = batch_size)
           test_loader  = DataLoader(test_dataset,  shuffle = False, batch_size = batch_size)
 
-        elif dataset_type == 'sroie':
+        elif dataset_type == 'sroie' or dataset_type == 'doctor':
           train_loader = original_images
           test_loader  = altered_images
           val_loader   = masks 

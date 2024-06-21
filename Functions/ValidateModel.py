@@ -107,7 +107,7 @@ def validate_model(model, dataloader, loss_function, device, channels, dataset_t
             val_loss = loss_function(pred_masks, masks)
             totalValLoss += val_loss.item()
 
-      elif dataset_type == 'sroie':
+      elif dataset_type == 'sroie' or dataset_type == 'doctor':
         for orig_images, altered_images, masks in dataloader:
             
             orig_images, altered_images, masks = orig_images.to(device), altered_images.to(device), masks.to(device)

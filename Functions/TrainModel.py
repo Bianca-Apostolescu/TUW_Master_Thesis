@@ -115,7 +115,7 @@ def train_model(model, dataloader, loss_function, optim, device, channels, datas
 
         totalTrainLoss += loss.item()
 
-  elif dataset_type == 'sroie':
+  elif dataset_type == 'sroie' or dataset_type == 'doctor':
 
     for orig_images, altered_images, masks in dataloader:
         images, altered_images, masks = orig_images.to(device), altered_images.to(device), masks.to(device)

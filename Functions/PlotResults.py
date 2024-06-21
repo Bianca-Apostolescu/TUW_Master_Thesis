@@ -67,7 +67,7 @@ print(device)
 
 def plot_results(lent, orig_images, altered_images, masks, pred_masks, dataset_type):
     
-    if dataset_type == 'comofod' or dataset_type == 'imd':
+    if dataset_type == 'comofod' or dataset_type == 'imd' or dataset_type == 'doctor':
       for i in range (0, lent): # range (0, lent) - for every image combination
             
             # Log image(s)
